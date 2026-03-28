@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}FF Store Pro | Purchase History{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
+
+{% block content %}
+<div class="page-shell">
+    <header class="topbar glass-panel">
+        <div>
+            <p class="eyebrow">History</p>
+            <h1>Approved Purchases</h1>
+        </div>
+        <div class="topbar-actions">
+            <a class="ghost-btn" href="{{ url_for('dashboard') }}">Back to Store</a>
+            <a class="ghost-btn" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </header>
+
+    <section class="history-grid">
+        {% for purchase in purchases %}
+            <article class="history-card glass-panel{% if purchase['level']|int == 2 %} history-card-level2{% elif purchase['level']|int >= 3 %} history-card-level3{% endif %}">
+                <div class="history-card-top">
+                    <div>
+                        <p class="product-tag">Level {{ purchase["level"] }} Approved</p>
+                        <h3>{{ purchase["account_title"] }}</h3>
+                    </div>
+                    <span class="status-pill">Approved</span>
+                </div>
+                <p class="product-desc">{{ purchase["account_description"] }}</p>
+                <div class="feature-chips">
+                    <span>UTR {{ purchase["utr"] }}</span>
+                    <span>{{ purchase["approved_at"] or purchase["created_at"] }}</span>
+                </div>
+                <div class="history-unlock">
+                    {% if purchase["level"] >= 1 %}
+                        <span>Level 1 approved. Open the product page to follow the instruction and reveal the account email.</span>
+                    {% endif %}
+                    {% if purchase["level"] >= 2 %}
+                        <span>Level 2 approved. Open the product page to continue the instruction flow and view the protected code.</span>
+                    {% endif %}
+                    {% if purchase["level"] >= 3 %}
+                        <span>Level 3 approved. Open the product page to complete the final step and access the live code.</span>
+                    {% endif %}
+                </div>
+                <a class="primary-btn small-btn" href="{{ url_for('product', account_id=purchase['account_id']) }}">Open Product</a>
+            </article>
+        {% else %}
+            <article class="empty-state glass-panel">
+                <h3>No approved purchases yet</h3>
+                <p>When admin approves your payment, it will appear here automatically.</p>
+            </article>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

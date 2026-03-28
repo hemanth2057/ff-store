@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}FF Store Pro | Selling Accounts{% endblock %}
+{% block body_class %}admin-page{% endblock %}
+
+{% block content %}
+<div class="page-shell admin-shell">
+    <header class="topbar glass-panel admin-topbar">
+        <div class="admin-topbar-copy">
+            <p class="eyebrow">Selling Accounts</p>
+            <h1>User Submitted FF Accounts</h1>
+        </div>
+        <div class="topbar-actions admin-topbar-actions">
+            <a class="ghost-btn" href="{{ url_for('admin') }}">Back to Admin</a>
+            <a class="ghost-btn" href="{{ url_for('admin_payments') }}">Payment Logs</a>
+            <a class="ghost-btn" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <section class="flash-stack">
+        {% for category, message in messages %}
+        <div class="flash-message {{ 'is-error' if category == 'error' else 'is-success' }}">{{ message }}</div>
+        {% endfor %}
+    </section>
+    {% endif %}
+    {% endwith %}
+
+    <section class="admin-sales-card glass-panel">
+        <div class="section-heading">
+            <p class="eyebrow">Sell Requests</p>
+            <h2>Submitted Accounts</h2>
+        </div>
+        <div class="sell-request-list">
+            {% for request_item in sell_requests %}
+            <article class="sell-request-item">
+                <div class="sell-request-top">
+                    <div>
+                        <h3>{{ request_item["seller_name"] }}</h3>
+                        <p>{{ request_item["mobile_number"] }} | Prime Level {{ request_item["prime_level"] or 5 }} | {{ request_item["bind_email"] }}</p>
+                    </div>
+                    <span class="status-pill">{{ request_item["status"]|title }}</span>
+                </div>
+                <div class="sell-request-meta">
+                    <span>Added by {{ request_item["user_name"] or 'Unknown user' }}</span>
+                    <span>{{ request_item["user_email"] or 'No user email' }}</span>
+                    <span>{{ request_item["created_at"] or 'Just now' }}</span>
+                </div>
+                {% set sell_images = image_list(request_item["images"]) %}
+                {% if sell_images %}
+                <div class="sell-request-gallery">
+                    {% for image in sell_images %}
+                    <img
+                        src="{{ url_for('static', filename=image) }}"
+                        alt="Selling request image {{ loop.index }}"
+                        onerror="this.style.display='none'">
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <p class="sell-request-body">{{ request_item["account_details"] }}</p>
+                <div class="sell-request-actions">
+                    {% if request_item["status"] != "approved" %}
+                    <form method="post" action="{{ url_for('approve_sell_request', request_id=request_item['id']) }}">
+                        <button class="small-btn primary-btn" type="submit">Approve</button>
+                    </form>
+                    {% endif %}
+                    {% if request_item["status"] != "rejected" %}
+                    <form method="post" action="{{ url_for('reject_sell_request', request_id=request_item['id']) }}">
+                        <button class="small-btn ghost-btn" type="submit">Reject</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </article>
+            {% else %}
+            <div class="empty-state">
+                <h3>No sell requests yet</h3>
+                <p>When users submit their FF accounts, the details will appear here.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}FF Store Pro | Edit Account{% endblock %}
+{% block body_class %}admin-page{% endblock %}
+
+{% block content %}
+<div class="page-shell admin-shell">
+    <header class="topbar glass-panel">
+        <div>
+            <p class="eyebrow">Admin Panel</p>
+            <h1>Edit Account</h1>
+        </div>
+        <div class="topbar-actions">
+            <a class="ghost-btn" href="{{ url_for('admin') }}">Back to Admin</a>
+        </div>
+    </header>
+
+    <section class="admin-grid">
+        <section class="admin-form-card glass-panel">
+            <div class="section-heading">
+                <p class="eyebrow">Edit Listing</p>
+                <h2>Update Account Details</h2>
+            </div>
+            <form class="admin-form" action="{{ url_for('edit_account', account_id=account['id']) }}" method="post">
+                <label>
+                    <span>Title</span>
+                    <input type="text" name="title" value="{{ account['title'] }}" required>
+                </label>
+                <label>
+                    <span>Price</span>
+                    <select name="price" required>
+                        <option value="399" {% if account["price"]|int == 399 %}selected{% endif %}>Rs. 399 Plan</option>
+                        <option value="499" {% if account["price"]|int == 499 %}selected{% endif %}>Rs. 499 Plan</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Prime Level</span>
+                    <select name="prime_level" required>
+                        <option value="5" {% if (account["prime_level"] or 5)|int == 5 %}selected{% endif %}>Prime Level 5</option>
+                        <option value="6" {% if (account["prime_level"] or 5)|int == 6 %}selected{% endif %}>Prime Level 6</option>
+                        <option value="7" {% if (account["prime_level"] or 5)|int == 7 %}selected{% endif %}>Prime Level 7</option>
+                        <option value="8" {% if (account["prime_level"] or 5)|int == 8 %}selected{% endif %}>Prime Level 8</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Description</span>
+                    <textarea name="description" rows="5" placeholder="Describe the account inventory, level, and highlights.">{{ account["description"] }}</textarea>
+                </label>
+                <button type="submit" class="primary-btn">Save Changes</button>
+            </form>
+        </section>
+    </section>
+</div>
+{% endblock %}

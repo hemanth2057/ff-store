@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}FF Store Pro | Payment Logs{% endblock %}
+{% block body_class %}admin-page{% endblock %}
+
+{% block content %}
+<div class="page-shell">
+    <header class="topbar glass-panel admin-topbar">
+        <div class="admin-topbar-copy">
+            <p class="eyebrow">Payments</p>
+            <h1>Verified Transaction Feed</h1>
+        </div>
+        <div class="topbar-actions admin-topbar-actions">
+            <a class="ghost-btn" href="{{ url_for('admin') }}">Back to Admin</a>
+        </div>
+    </header>
+
+    <section class="payments-table glass-panel">
+        <div class="table-head">
+            <span>Full Name</span>
+            <span>User</span>
+            <span>Listing</span>
+            <span>UTR</span>
+            <span>Level</span>
+            <span>Status</span>
+            <span>Action</span>
+        </div>
+        {% for payment in payments %}
+            <article class="payment-log-card">
+                <div class="table-row">
+                    <span>{{ payment["full_name"] }}</span>
+                    <span>{{ payment["user_email"] }}</span>
+                    <span>{{ payment["account_title"] }}</span>
+                    <span>{{ payment["utr"] }}</span>
+                    <span>Level {{ payment["level"] }}</span>
+                    <span class="status-pill">{{ payment["status"]|title }}</span>
+                    <span class="payment-actions">
+                        {% if payment["status"] != "approved" %}
+                            <form method="post" action="{{ url_for('approve_payment', payment_id=payment['id']) }}">
+                                <button class="small-btn primary-btn" type="submit">Approve</button>
+                            </form>
+                        {% endif %}
+                        {% if payment["status"] != "rejected" %}
+                            <form method="post" action="{{ url_for('reject_payment', payment_id=payment['id']) }}">
+                                <button class="small-btn ghost-btn" type="submit">Reject</button>
+                            </form>
+                        {% endif %}
+                        <form method="post" action="{{ url_for('delete_payment', payment_id=payment['id']) }}">
+                            <button class="small-btn danger-btn" type="submit">Delete</button>
+                        </form>
+                    </span>
+                </div>
+                {% if payment["status"] == "rejected" %}
+                    <div class="payment-detail-card">
+                        <strong>Rejected Payment</strong>
+                        <span>UTR is invalid. Please pay again.</span>
+                    </div>
+                {% endif %}
+                {% if payment["status"] == "approved" and payment["approved_unlock"] %}
+                    <div class="payment-detail-card">
+                        <strong>Approved Unlock Preview</strong>
+                        {% if payment["level"] >= 1 %}
+                            <span>Email: {{ payment["approved_unlock"]["level1_email"] }}</span>
+                        {% endif %}
+                        {% if payment["level"] >= 2 %}
+                            <span>Level 2 Code: {{ payment["approved_unlock"]["level2_code"] }}</span>
+                        {% endif %}
+                        {% if payment["level"] >= 3 %}
+                            <span>Level 3 Code: {{ payment["approved_unlock"]["level3_code"] }}</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </article>
+        {% else %}
+            <div class="empty-state">
+                <h3>No payments yet</h3>
+                <p>Submitted payments will appear here for admin approval.</p>
+            </div>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}FF Store Pro | Login{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+    <section class="auth-hero glass-panel">
+        <div class="orb orb-one"></div>
+        <div class="orb orb-two"></div>
+        <p class="eyebrow">Premium Free Fire Marketplace</p>
+        <h1>FF Store Pro</h1>
+        <p class="hero-copy">Trusted account listings, lightning-fast unlock delivery, and a storefront experience built to feel like a premium gaming marketplace.</p>
+        <div class="trust-row">
+            <span>Secure sessions</span>
+            <span>Instant delivery</span>
+            <span>Verified listings</span>
+        </div>
+        <div class="hero-card-grid">
+            <article class="mini-stat">
+                <strong>24/7</strong>
+                <span>Support window</span>
+            </article>
+            <article class="mini-stat">
+                <strong>1500+</strong>
+                <span>Accounts viewed</span>
+            </article>
+            <article class="mini-stat">
+                <strong>99%</strong>
+                <span>Successful handovers</span>
+            </article>
+        </div>
+    </section>
+
+    <section class="auth-card glass-panel">
+        <div class="tab-switch" id="authTabs">
+            <button type="button" class="tab-btn is-active" data-tab="signup">Sign Up</button>
+            <button type="button" class="tab-btn" data-tab="signin">Sign In</button>
+        </div>
+
+        <div class="auth-header">
+            <div>
+                <p class="eyebrow" id="authEyebrow">Account Access</p>
+                <h2 id="authTitle">Create Player Account</h2>
+            </div>
+            <a class="admin-link" href="{{ url_for('admin_login') }}">Admin login</a>
+        </div>
+
+        <div class="form-feedback" id="authFeedback" aria-live="polite"></div>
+
+        <form id="signinForm" class="auth-form hidden">
+            <label>
+                <span>Email</span>
+                <input type="email" id="loginEmail" placeholder="player@example.com" required>
+            </label>
+            <label>
+                <span>Password</span>
+                <div class="password-input-wrap">
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                    <button type="button" class="password-toggle-btn" data-password-toggle data-target="loginPassword"></button>
+                </div>
+            </label>
+            <button type="submit" class="primary-btn">Enter Store</button>
+        </form>
+
+        <form id="signupForm" class="auth-form">
+            <label>
+                <span>Full name</span>
+                <input type="text" id="signupName" placeholder="Your in-game name" required>
+            </label>
+            <label>
+                <span>Email</span>
+                <input type="email" id="signupEmail" placeholder="player@example.com" required>
+            </label>
+            <label>
+                <span>Password</span>
+                <div class="password-input-wrap">
+                    <input type="password" id="signupPassword" placeholder="Create a secure password" required>
+                    <button type="button" class="password-toggle-btn" data-password-toggle data-target="signupPassword"></button>
+                </div>
+            </label>
+            <button type="submit" class="primary-btn">Create Account</button>
+        </form>
+
+        <div class="auth-footer-note">
+            <span>Dark premium UI</span>
+            <span>Session-based login</span>
+            <span>Fast API auth</span>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='password-toggle.js', v=asset_version) }}"></script>
+<script src="{{ url_for('static', filename='auth.js', v=asset_version) }}"></script>
+{% endblock %}

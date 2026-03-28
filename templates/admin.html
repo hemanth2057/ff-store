@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}FF Store Pro | Admin Panel{% endblock %}
+{% block body_class %}admin-page{% endblock %}
+
+{% block content %}
+<div class="page-shell admin-shell">
+    <header class="topbar glass-panel admin-topbar">
+        <div class="admin-topbar-copy">
+            <p class="eyebrow">Admin Panel</p>
+            <h1>FF Store Pro Manager</h1>
+        </div>
+        <div class="topbar-actions admin-topbar-actions">
+            <a class="ghost-btn" href="#inventorySection">Inventory</a>
+            <a class="ghost-btn" href="{{ url_for('admin_selling_accounts') }}">Selling Accounts</a>
+            <a class="ghost-btn" href="{{ url_for('admin_payments') }}">Payment Logs</a>
+            <a class="ghost-btn" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <section class="flash-stack">
+        {% for category, message in messages %}
+        <div class="flash-message {{ 'is-error' if category == 'error' else 'is-success' }}">{{ message }}</div>
+        {% endfor %}
+    </section>
+    {% endif %}
+    {% endwith %}
+
+    <section class="admin-grid">
+        <section class="admin-form-card glass-panel">
+            <div class="section-heading">
+                <p class="eyebrow">Add Account</p>
+                <h2>Create New Listing</h2>
+            </div>
+            <form class="admin-form" action="{{ url_for('add_account') }}" method="post" enctype="multipart/form-data">
+                <label>
+                    <span>Title</span>
+                    <input type="text" name="title" id="listingTitleInput" placeholder="Legendary Evo Gun Account" required>
+                </label>
+                <label>
+                    <span>Price</span>
+                    <select name="price" id="listingPriceInput" required>
+                        <option value="399">Rs. 399 Plan</option>
+                        <option value="499">Rs. 499 Plan</option>
+                    </select>
+                    <small>`Rs. 399` plan: Level 1 `399`, Level 2 `899`, Level 3 `1399`. `Rs. 499` plan: Level 1 `499`, Level 2 `999`, Level 3 `1499`.</small>
+                </label>
+                <label>
+                    <span>Prime Level</span>
+                    <select name="prime_level" required>
+                        <option value="5">Prime Level 5</option>
+                        <option value="6">Prime Level 6</option>
+                        <option value="7">Prime Level 7</option>
+                        <option value="8">Prime Level 8</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Description</span>
+                    <textarea name="description" id="listingDescriptionInput" rows="4" placeholder="Describe the account inventory, level, and highlights."></textarea>
+                </label>
+                <div class="ai-generator-box">
+                    <div>
+                        <strong>Auto Copy Generator</strong>
+                        <span>Generate a premium title and description instantly from the selected plan without any API.</span>
+                    </div>
+                    <button type="button" class="ghost-btn" id="generateAiCopyBtn">Auto Generate</button>
+                </div>
+                <div class="form-feedback" id="adminAiFeedback" aria-live="polite"></div>
+                <label>
+                    <span>Upload Images</span>
+                    <input type="file" name="images" accept=".png,.jpg,.jpeg,.webp,.gif" multiple>
+                    <small>Upload 10 images. Files are stored in `static/uploads` with UUID names.</small>
+                </label>
+                <button type="submit" class="primary-btn">Publish Listing</button>
+            </form>
+        </section>
+
+        <section class="admin-list-card glass-panel" id="inventorySection">
+            <div class="section-heading">
+                <p class="eyebrow">Inventory</p>
+                <h2>Current Listings</h2>
+            </div>
+            <form method="post" action="{{ url_for('bulk_delete_accounts') }}">
+                <div class="admin-list-toolbar">
+                    <label class="select-all-toggle">
+                        <input type="checkbox" id="selectAllAccounts">
+                        <span>Select All</span>
+                    </label>
+                    <button class="danger-btn small-btn" type="submit">Delete Selected</button>
+                </div>
+                <div class="admin-list">
+                {% for account in accounts %}
+                    {% set images = image_list(account["images"]) %}
+                    <article class="admin-item">
+                        <label class="account-select">
+                            <input type="checkbox" name="account_ids" value="{{ account['id'] }}" class="account-checkbox">
+                        </label>
+                        <img
+                            src="{{ url_for('static', filename=images[0]) if images else url_for('static', filename='default-product.svg') }}"
+                            alt="{{ account['title'] }}"
+                            onerror="this.src='{{ url_for('static', filename='default-product.svg') }}'">
+                        <div class="admin-item-content">
+                            <h3>{{ account["title"] }}</h3>
+                            <p>Rs. {{ "%.0f"|format(account["price"]|float) }}</p>
+                            <small class="prime-level-chip">Prime Level {{ account["prime_level"] or 5 }}</small>
+                            <span>{{ account["description"] or 'No description added yet.' }}</span>
+                        </div>
+                        <div class="admin-item-actions">
+                            <a class="ghost-btn small-btn" href="{{ url_for('edit_account', account_id=account['id']) }}">Edit</a>
+                            <button class="danger-btn small-btn" type="submit" formaction="{{ url_for('delete_account', account_id=account['id']) }}" formmethod="post" name="single_delete" value="{{ account['id'] }}">Delete</button>
+                        </div>
+                    </article>
+                {% else %}
+                    <div class="empty-state">
+                        <h3>No listings yet</h3>
+                        <p>Use the form to add your first account.</p>
+                    </div>
+                {% endfor %}
+                </div>
+            </form>
+        </section>
+    </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='admin.js', v=asset_version) }}"></script>
+{% endblock %}

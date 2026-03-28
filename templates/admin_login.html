@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}FF Store Pro | Admin Login{% endblock %}
+{% block body_class %}auth-page admin-auth-page{% endblock %}
+
+{% block content %}
+<div class="auth-shell admin-auth-layout">
+    <section class="auth-card glass-panel admin-login-card">
+        <div class="auth-header">
+            <div>
+                <p class="eyebrow">Admin Control</p>
+                <h2>Management Access</h2>
+            </div>
+            <a class="admin-link" href="{{ url_for('login_page') }}">Back to player login</a>
+        </div>
+        {% if error %}
+            <div class="form-feedback is-error">{{ error }}</div>
+        {% endif %}
+        <form method="post" class="auth-form">
+            <label>
+                <span>Admin email</span>
+                <input type="email" name="email" placeholder="{{ admin_email_hint }}" required>
+            </label>
+            <label>
+                <span>Password</span>
+                <div class="password-input-wrap">
+                    <input type="password" id="adminPassword" name="password" placeholder="Enter admin password" required>
+                    <button type="button" class="password-toggle-btn" data-password-toggle data-target="adminPassword"></button>
+                </div>
+            </label>
+            <button type="submit" class="primary-btn">Open Admin Panel</button>
+        </form>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='password-toggle.js', v=asset_version) }}"></script>
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}FF Store Pro | {{ account["title"] }}{% endblock %}
+{% block body_class %}product-page{% endblock %}
+
+{% block content %}
+<canvas id="particleCanvas" class="particle-canvas"></canvas>
+
+<div class="page-shell product-shell">
+    <header class="topbar glass-panel">
+        <div>
+            <p class="eyebrow">Product View</p>
+            <h1>{{ account["title"] }}</h1>
+        </div>
+        <div class="topbar-actions">
+            <a class="ghost-btn" href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+            <a class="ghost-btn" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </header>
+
+    <section class="product-layout glass-panel">
+        <div class="gallery-column">
+            <div class="main-image-panel">
+                <img
+                    id="mainImage"
+                    src="{{ url_for('static', filename=images[0]) if images else url_for('static', filename='default-product.svg') }}"
+                    alt="{{ account['title'] }}"
+                    onerror="this.src='{{ url_for('static', filename='default-product.svg') }}'">
+            </div>
+            <div class="thumb-strip">
+                {% for image in images %}
+                    <button class="thumb-btn{% if loop.first %} is-active{% endif %}" type="button" data-image="{{ url_for('static', filename=image) }}">
+                        <img
+                            src="{{ url_for('static', filename=image) }}"
+                            alt="Thumbnail {{ loop.index }}"
+                            onerror="this.closest('button').style.display='none'">
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="details-column">
+            <div class="rating-row">
+                <span class="rating-pill">4.8 Rating</span>
+                <span>1,200+ interested players</span>
+            </div>
+            <div class="price-stack">
+                <strong>Rs. {{ "%.0f"|format(account["price"]|float) }}</strong>
+                <span class="striked">Rs. {{ "%.0f"|format(account["original_price"]|float) }}</span>
+                <span class="discount-pill">{{ account["discount_percent"] }}% off</span>
+            </div>
+            <p class="product-long-desc">{{ account["description"] }}</p>
+
+            <div class="feature-panel">
+                {% for feature in features %}
+                    <span>{{ feature }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="trust-grid">
+                <article><strong>Secure</strong><span>Protected payment simulation with UTR validation</span></article>
+                <article><strong>Instant</strong><span>Progressive unlock content after successful payment</span></article>
+                <article><strong>Trusted</strong><span>Professional storefront and premium account layout</span></article>
+            </div>
+
+            <div class="cta-row">
+                <button type="button" class="primary-btn" id="buyNowBtn">Buy Now</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+{% if payment_popup %}
+<div class="status-popup status-popup-{{ payment_popup['tone'] }}" id="paymentStatusPopup">
+    <strong>{{ payment_popup["title"] }}</strong>
+    <span>{{ payment_popup["message"] }}</span>
+    <button type="button" class="modal-close status-popup-close" id="closeStatusPopup">x</button>
+</div>
+{% endif %}
+
+<div class="modal-overlay hidden" id="paymentModal">
+    <div class="modal-card glass-panel">
+        <button class="modal-close" type="button" id="closePaymentModal">x</button>
+        <section class="payment-section payment-section-top">
+            <div class="payment-notice">
+                <strong>Secure payment</strong>
+                <span>Scan the QR, complete the exact amount for your current level, then enter your full name and strict 12-digit UTR below.</span>
+            </div>
+
+            <div class="payment-top">
+                <div class="payment-qr-card">
+                    <span class="payment-qr-label">Scan to pay</span>
+                    <img id="paymentQrImage" src="{{ payment_qr_url }}" alt="UPI QR for {{ payment_upi_id }}">
+                    <small class="payment-amount-inline" id="paymentAmountInline">Pay the current level amount.</small>
+                </div>
+            </div>
+
+            <div class="payment-form">
+                <input type="text" id="fullNameInput" placeholder="Enter full name" autocomplete="name">
+                <input type="text" id="utrInput" maxlength="12" inputmode="numeric" pattern="[0-9]{12}" placeholder="Enter strict 12-digit UTR">
+                <button type="button" class="primary-btn" id="submitPaymentBtn">Pay Rs. 500</button>
+            </div>
+
+            <div class="form-feedback" id="paymentFeedback" aria-live="polite"></div>
+        </section>
+
+        <section class="payment-section payment-section-bottom hidden" id="instructionLevelsSection">
+            <p class="eyebrow">Instruction Levels 1, 2, 3</p>
+
+            <div class="unlock-panel">
+                <article class="unlock-card" id="unlockLevel1">
+                    <h3>Level 1</h3>
+                    <div class="instruction-flow hidden" id="level1InstructionFlow">
+                        <img
+                            id="instructionImage"
+                            src="{{ url_for('static', filename='uploads/instruction-1.jpeg') }}"
+                            alt="Level 1 instruction step">
+                        <p class="instruction-copy" id="instructionCopy">Step 1: click Next to continue the email setup instruction.</p>
+                        <button type="button" class="primary-btn small-btn" id="instructionNextBtn">Next</button>
+                    </div>
+                    <p class="hidden" id="level1EmailRow">Email: <span data-field="level1_email">Locked</span></p>
+                    <small>To know the code, unlock Level 2.</small>
+                </article>
+                <article class="unlock-card" id="unlockLevel2">
+                    <h3>Level 2</h3>
+                    <div class="instruction-flow hidden" id="level2InstructionFlow">
+                        <img
+                            id="level2InstructionImage"
+                            src="{{ url_for('static', filename='uploads/instruction-level2.jpeg') }}"
+                            alt="Level 2 instruction step">
+                        <p class="instruction-copy">Level 2 unlocked. Use the verification code section shown here to continue the recovery flow.</p>
+                        <button type="button" class="primary-btn small-btn" id="level2InstructionNextBtn">Next</button>
+                    </div>
+                    <div class="hidden" id="level2CodeRow">
+                        <p>Code: <span class="masked-code" data-field="level2_code">Locked</span></p>
+                        <small>Shows 4 digits and keeps the last 3 digits hidden. Refreshes in <span class="timer-pill" id="level2Timer">120s</span>.</small>
+                        <small>To know the last 3 digits, unlock Level 3.</small>
+                    </div>
+                </article>
+                <article class="unlock-card" id="unlockLevel3">
+                    <h3>Level 3</h3>
+                    <p>Live code: <span class="final-code" data-field="level3_seed">Locked</span></p>
+                    <small>Refreshes in <span class="timer-pill" id="level3Timer">60s</span>.</small>
+                    <div class="success-banner hidden" id="level3Congrats">Congratulations, you bought the account.</div>
+                </article>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    window.productData = {
+        accountId: {{ account["id"] }},
+        unlock: {{ unlock_payload|tojson }},
+        approvedLevel: {{ approved_level|int }},
+        nextPaymentLevel: {{ next_payment_level|int }},
+        paymentAmounts: {{ payment_amounts|tojson }},
+        paymentPopup: {{ payment_popup|tojson }},
+        paymentUpiId: {{ payment_upi_id|tojson }},
+        paymentUpiName: {{ payment_upi_name|tojson }},
+        paymentUpiLink: {{ payment_upi_link|tojson }},
+        instructionImages: [
+            "{{ url_for('static', filename='uploads/instruction-1.jpeg') }}",
+            "{{ url_for('static', filename='uploads/instruction-2.jpeg') }}"
+        ],
+        level2InstructionImage: "{{ url_for('static', filename='uploads/instruction-level2.jpeg') }}"
+    };
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='password-toggle.js', v=asset_version) }}"></script>
+<script src="{{ url_for('static', filename='product.js', v=asset_version) }}"></script>
+{% endblock %}

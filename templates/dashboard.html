@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}FF Store Pro | Dashboard{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
+
+{% block content %}
+<div class="page-shell">
+    <header class="topbar glass-panel storefront-topbar">
+        <div>
+            <p class="eyebrow">Browse Accounts</p>
+            <h1>FF Store Pro</h1>
+            <button type="button" class="ghost-btn sell-account-btn" id="openSellAccountModal">Sell your FF account</button>
+        </div>
+        <div class="topbar-search">
+            <input type="search" id="searchBox" placeholder="Search accounts, bundles, features">
+        </div>
+        <div class="topbar-actions">
+            <span class="user-pill">{{ current_user["name"] if current_user else "Player" }}</span>
+            <a class="ghost-btn" href="{{ url_for('history') }}">History{% if history_count %} ({{ history_count }}){% endif %}</a>
+            <a class="ghost-btn" href="{{ url_for('logout') }}">Logout</a>
+            <button type="button" class="menu-toggle-btn" id="mobileMenuBtn" aria-label="Open menu" aria-controls="mobileSideMenu" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <section class="flash-stack">
+        {% for category, message in messages %}
+        <div class="flash-message {{ 'is-error' if category == 'error' else 'is-success' }}">{{ message }}</div>
+        {% endfor %}
+    </section>
+    {% endif %}
+    {% endwith %}
+
+    <div class="side-menu-overlay hidden" id="sideMenuOverlay"></div>
+    <aside class="side-menu-drawer hidden" id="mobileSideMenu" aria-hidden="true">
+        <div class="side-menu-head">
+            <div>
+                <p class="eyebrow">Profile</p>
+                <h3>{{ current_user["name"] if current_user else "Player" }}</h3>
+            </div>
+            <button type="button" class="modal-close" id="closeMobileMenu">x</button>
+        </div>
+        <div class="side-menu-links">
+            <span class="user-pill">Logged in as {{ current_user["name"] if current_user else "Player" }}</span>
+            <a class="ghost-btn" href="{{ url_for('history') }}">History{% if history_count %} ({{ history_count }}){% endif %}</a>
+            <a class="ghost-btn" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </aside>
+
+    <div class="modal-overlay hidden" id="sellAccountModal" aria-hidden="true">
+        <section class="modal-card glass-panel sell-modal-card">
+            <button type="button" class="modal-close" id="closeSellAccountModal" aria-label="Close sell account form">x</button>
+            <div class="section-heading">
+                <p class="eyebrow">Sell Account</p>
+                <h2>Send Your FF Account To Admin</h2>
+            </div>
+            <p class="modal-copy">Submit your details and the admin panel will show who added the account request.</p>
+            <form class="admin-form sell-account-form" action="{{ url_for('submit_sell_request') }}" method="post" enctype="multipart/form-data">
+                <label>
+                    <span>Name</span>
+                    <input type="text" name="seller_name" value="{{ current_user['name'] if current_user else '' }}" placeholder="Your full name" required>
+                </label>
+                <label>
+                    <span>Mobile Number</span>
+                    <input type="text" name="mobile_number" placeholder="Your mobile number" required>
+                </label>
+                <label>
+                    <span>What is your prime level?</span>
+                    <select name="prime_level" required>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Upload Public Images</span>
+                    <input type="file" name="images" accept=".png,.jpg,.jpeg,.webp,.gif" multiple>
+                    <small>Upload up to 15 images for the public view.</small>
+                </label>
+                <label>
+                    <span>Bind Mail</span>
+                    <input type="email" name="bind_email" placeholder="Bound email of the account" required>
+                </label>
+                <label>
+                    <span>Account Details</span>
+                    <textarea name="account_details" rows="5" placeholder="Write account level, skins, evo guns, rank, and anything important." required></textarea>
+                </label>
+                <button type="submit" class="primary-btn">Send To Admin</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="catalog-heading">
+        <div class="catalog-heading-tabs">
+            <h3>Top Accounts</h3>
+            <a class="ghost-btn small-btn buyed-accounts-btn" id="buyedAccountsBtn" href="{{ url_for('history') }}" data-history-count="{{ history_count }}">
+                <span>Buyed Accounts</span>
+                {% if history_count %}
+                <span class="notification-badge" id="buyedAccountsBadge">{{ history_count }}</span>
+                {% endif %}
+            </a>
+        </div>
+        <span>Latest premium listings first</span>
+    </div>
+
+    <section class="product-grid" id="productGrid">
+        {% for account in accounts %}
+            {% set images = image_list(account["images"]) %}
+            <article class="product-card glass-panel"
+                     data-account-id="{{ account['id'] }}"
+                     data-search="{{ (account['title'] ~ ' ' ~ account['description'] ~ ' ' ~ account['features'])|lower }}">
+                <a class="product-image-wrap" href="{{ url_for('product', account_id=account['id']) }}">
+                    <img
+                        src="{{ url_for('static', filename=images[0]) if images else url_for('static', filename='default-product.svg') }}"
+                        alt="{{ account['title'] }}"
+                        onerror="this.src='{{ url_for('static', filename='default-product.svg') }}'">
+                </a>
+                <div class="product-content">
+                    <div class="product-meta">
+                        <h3>{{ account["title"] }}</h3>
+                    </div>
+                    <div class="product-footer">
+                        <div>
+                            <strong class="price-tag">Rs. {{ "%.0f"|format(account["price"]|float) }}</strong>
+                            <span class="price-note"><span class="price-cut">Rs. {{ "%.0f"|format(account["original_price"]|float) }}</span> · {{ account["discount_percent"] }}% off</span>
+                        </div>
+                        <a class="primary-btn small-btn" href="{{ url_for('product', account_id=account['id']) }}">Buy Now</a>
+                    </div>
+                </div>
+            </article>
+        {% else %}
+            <article class="empty-state glass-panel">
+                <h3>No accounts listed yet</h3>
+                <p>The admin panel can add accounts with 10 images, description, and features.</p>
+            </article>
+        {% endfor %}
+    </section>
+
+    <section class="support-strip">
+        <article class="support-card glass-panel">
+            <div>
+                <p class="eyebrow">Support</p>
+                <h3>Need help before purchase?</h3>
+                <p>Use the listing details and purchase history to track approvals and unlock steps clearly.</p>
+            </div>
+            <span class="support-pill">Fast guidance</span>
+        </article>
+    </section>
+
+    <section class="trust-strip trust-strip-bottom">
+        <article class="trust-card glass-panel">
+            <strong>Trusted Flow</strong>
+            <span>Structured checkout and approval flow built to reduce confusion.</span>
+        </article>
+        <article class="trust-card glass-panel">
+            <strong>Visible History</strong>
+            <span>Approved purchases stay available in history for easy access later.</span>
+        </article>
+        <article class="trust-card glass-panel">
+            <strong>Responsive Design</strong>
+            <span>Optimized layout across desktop and mobile without oversized sections.</span>
+        </article>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='dashboard.js', v=asset_version) }}"></script>
+{% endblock %}
