@@ -1195,6 +1195,10 @@ def delete_payment(payment_id):
 def verify():
     return app.send_static_file('google49342162f06c9265.html')
 
+@app.route('/sitemap.xml')
+def sitemap():
+    return app.send_static_file('sitemap.xml')
+
 
 @app.route("/admin_payments")
 @admin_required
