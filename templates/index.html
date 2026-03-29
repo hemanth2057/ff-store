@@ -33,65 +33,33 @@
     </section>
 
     <section class="auth-card glass-panel">
-        <div class="tab-switch" id="authTabs">
-            <button type="button" class="tab-btn is-active" data-tab="signup">Sign Up</button>
-            <button type="button" class="tab-btn" data-tab="signin">Sign In</button>
-        </div>
-
         <div class="auth-header">
             <div>
-                <p class="eyebrow" id="authEyebrow">Account Access</p>
-                <h2 id="authTitle">Create Player Account</h2>
+                <p class="eyebrow" id="authEyebrow">Player Access</p>
+                <h2 id="authTitle">Enter Your Name</h2>
             </div>
             <a class="admin-link" href="{{ url_for('admin_login') }}">Admin login</a>
         </div>
 
         <div class="form-feedback" id="authFeedback" aria-live="polite"></div>
 
-        <form id="signinForm" class="auth-form hidden">
+        <form id="signinForm" class="auth-form">
             <label>
-                <span>Email</span>
-                <input type="email" id="loginEmail" placeholder="player@example.com" required>
-            </label>
-            <label>
-                <span>Password</span>
-                <div class="password-input-wrap">
-                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
-                    <button type="button" class="password-toggle-btn" data-password-toggle data-target="loginPassword"></button>
-                </div>
+                <span>Name</span>
+                <input type="text" id="loginName" placeholder="Your in-game name" required>
             </label>
             <button type="submit" class="primary-btn">Enter Store</button>
         </form>
 
-        <form id="signupForm" class="auth-form">
-            <label>
-                <span>Full name</span>
-                <input type="text" id="signupName" placeholder="Your in-game name" required>
-            </label>
-            <label>
-                <span>Email</span>
-                <input type="email" id="signupEmail" placeholder="player@example.com" required>
-            </label>
-            <label>
-                <span>Password</span>
-                <div class="password-input-wrap">
-                    <input type="password" id="signupPassword" placeholder="Create a secure password" required>
-                    <button type="button" class="password-toggle-btn" data-password-toggle data-target="signupPassword"></button>
-                </div>
-            </label>
-            <button type="submit" class="primary-btn">Create Account</button>
-        </form>
-
         <div class="auth-footer-note">
-            <span>Dark premium UI</span>
-            <span>Session-based login</span>
-            <span>Fast API auth</span>
+            <span>Name-only login</span>
+            <span>Session-based access</span>
+            <span>Fast entry</span>
         </div>
     </section>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='password-toggle.js', v=asset_version) }}"></script>
 <script src="{{ url_for('static', filename='auth.js', v=asset_version) }}"></script>
 {% endblock %}

@@ -409,58 +409,29 @@ def login_page():
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json(silent=True) or {}
-    email = data.get("email", "").strip().lower()
-    password = data.get("password", "")
-
-    if not email or not password:
-        return jsonify({"status": "error", "message": "Email and password are required."}), 400
-
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = ? AND is_admin = 0", (email,))
-    user = cursor.fetchone()
-    conn.close()
-
-    if not user or not check_password_hash(user["password"], password):
-        return jsonify({"status": "error", "message": "Invalid credentials."}), 401
-
-    session.clear()
-    session["user_id"] = user["id"]
-    session["user_name"] = user["name"]
-    session["admin"] = False
-    return jsonify({"status": "success", "redirect": url_for("dashboard")})
-
-
-@app.route("/signup", methods=["POST"])
-def signup():
-    data = request.get_json(silent=True) or {}
     name = data.get("name", "").strip()
-    email = data.get("email", "").strip().lower()
-    password = data.get("password", "")
 
-    if len(name) < 2 or "@" not in email or len(password) < 6:
-        return jsonify(
-            {
-                "status": "error",
-                "message": "Enter a valid name, email, and a password with at least 6 characters.",
-            }
-        ), 400
-
-    password_hash = generate_password_hash(password)
+    if len(name) < 2:
+        return jsonify({"status": "error", "message": "Name is required."}), 400
 
     conn = get_db()
     cursor = conn.cursor()
-    try:
+    cursor.execute("SELECT * FROM users WHERE LOWER(name) = LOWER(?) AND is_admin = 0 ORDER BY id ASC", (name,))
+    user = cursor.fetchone()
+
+    if not user:
+        slug = "".join(char.lower() if char.isalnum() else "" for char in name) or "player"
+        synthetic_email = f"{slug}-{uuid.uuid4().hex[:8]}@guest.ffstore.local"
+        password_hash = generate_password_hash(uuid.uuid4().hex)
         cursor.execute(
             "INSERT INTO users (name, email, password, is_admin) VALUES (?, ?, ?, 0)",
-            (name, email, password_hash),
+            (name, synthetic_email, password_hash),
         )
         conn.commit()
-    except sqlite3.IntegrityError:
-        conn.close()
-        return jsonify({"status": "error", "message": "That email is already registered."}), 409
+        user_id = cursor.lastrowid
+    else:
+        user_id = user["id"]
 
-    user_id = cursor.lastrowid
     conn.close()
 
     session.clear()
@@ -468,6 +439,11 @@ def signup():
     session["user_name"] = name
     session["admin"] = False
     return jsonify({"status": "success", "redirect": url_for("dashboard")})
+
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    return login()
 
 
 @app.route("/logout")
