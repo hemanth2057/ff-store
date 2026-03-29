@@ -1191,6 +1191,10 @@ def delete_payment(payment_id):
     conn.close()
     return redirect(url_for("admin_payments"))
 
+@app.route('/google49342162f06c9265.html')
+def verify():
+    return app.send_static_file('google49342162f06c9265.html')
+
 
 @app.route("/admin_payments")
 @admin_required
